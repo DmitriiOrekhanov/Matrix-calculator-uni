@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор матриц</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
+        .task-description {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .matrices-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .matrix-block {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        .matrix-input {
+            display: grid;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .matrix-row {
+            display: grid;
+            grid-template-columns: repeat(var(--cols), 1fr);
+            gap: 5px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result-section {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .result-item {
+            margin-bottom: 10px;
+        }
+        .final-result {
+            font-weight: bold;
+            font-size: 18px;
+            color: #4CAF50;
+        }
+        .size-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .size-controls label {
+            margin-right: 5px;
+        }
+        .size-controls input {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Калькулятор матриц</h1>
+    
+    <div class="task-description">
+        <h2>Задача</h2>
+        <p>Даны матрицы A (5×5), B (7×7), C (4×4). Вычислить значение выражения P<sub>A</sub> + P<sub>B</sub> – P<sub>C</sub>, где P<sub>A</sub> (P<sub>B</sub>, P<sub>C</sub>) — произведение положительных элементов главной диагонали матрицы A (B, C).</p>
+    </div>
+    
+    <div class="matrices-container">
+        <div class="matrix-block">
+            <h2>Матрица A</h2>
+            <div class="size-controls">
+                <label for="matrix-a-size">Размер:</label>
+                <input type="number" id="matrix-a-size" min="1" max="10" value="5">
+                <button onclick="resizeMatrix('A')">Изменить</button>
+            </div>
+            <div id="matrix-a" class="matrix-input"></div>
+        </div>
+        
+        <div class="matrix-block">
+            <h2>Матрица B</h2>
+            <div class="size-controls">
+                <label for="matrix-b-size">Размер:</label>
+                <input type="number" id="matrix-b-size" min="1" max="10" value="7">
+                <button onclick="resizeMatrix('B')">Изменить</button>
+            </div>
+            <div id="matrix-b" class="matrix-input"></div>
+        </div>
+        
+        <div class="matrix-block">
+            <h2>Матрица C</h2>
+            <div class="size-controls">
+                <label for="matrix-c-size">Размер:</label>
+                <input type="number" id="matrix-c-size" min="1" max="10" value="4">
+                <button onclick="resizeMatrix('C')">Изменить</button>
+            </div>
+            <div id="matrix-c" class="matrix-input"></div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="fillRandomValues()">Заполнить случайными значениями</button>
+        <button onclick="calculateResult()">Вычислить</button>
+        <button onclick="clearMatrices()">Очистить</button>
+    </div>
+    
+    <div class="result-section" id="result-section" style="display: none;">
+        <h2>Результаты вычислений</h2>
+        <div class="result-item" id="product-a"></div>
+        <div class="result-item" id="product-b"></div>
+        <div class="result-item" id="product-c"></div>
+        <div class="result-item final-result" id="final-result"></div>
+    </div>
+    
+    <script>
+        // Инициализация матриц при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMatrix('A', 5);
+            initializeMatrix('B', 7);
+            initializeMatrix('C', 4);
+        });
+        
+        // Функция для инициализации матрицы заданного размера
+        function initializeMatrix(matrixName, size) {
+            const matrixElement = document.getElementById(`matrix-${matrixName.toLowerCase()}`);
+            matrixElement.innerHTML = '';
+            matrixElement.style.setProperty('--cols', size);
+            
+            for (let i = 0; i < size; i++) {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'matrix-row';
+                
+                for (let j = 0; j < size; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.id = `${matrixName.toLowerCase()}-${i}-${j}`;
+                    input.value = '0';
+                    rowElement.appendChild(input);
+                }
+                
+                matrixElement.appendChild(rowElement);
+            }
+        }
+        
+        // Функция для изменения размера матрицы
+        function resizeMatrix(matrixName) {
+            const sizeInput = document.getElementById(`matrix-${matrixName.toLowerCase()}-size`);
+            const size = parseInt(sizeInput.value);
+            
+            if (size >= 1 && size <= 10) {
+                initializeMatrix(matrixName, size);
+            } else {
+                alert('Размер матрицы должен быть от 1 до 10');
+            }
+        }
+        
+        // Функция для заполнения матриц случайными значениями от -10 до 10
+        function fillRandomValues() {
+            const matrices = ['A', 'B', 'C'];
+            
+            matrices.forEach(matrixName => {
+                const size = parseInt(document.getElementById(`matrix-${matrixName.toLowerCase()}-size`).value);
+                
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        const input = document.getElementById(`${matrixName.toLowerCase()}-${i}-${j}`);
+                        input.value = Math.floor(Math.random() * 21) - 10;
+                    }
+                }
+            });
+        }
+        
+        // Функция для очистки матриц (заполнение нулями)
+        function clearMatrices() {
+            const matrices = ['A', 'B', 'C'];
+            
+            matrices.forEach(matrixName => {
+                const size = parseInt(document.getElementById(`matrix-${matrixName.toLowerCase()}-size`).value);
+                
+                for (let i = 0; i < size; i++) {
+                    for (let j = 0; j < size; j++) {
+                        const input = document.getElementById(`${matrixName.toLowerCase()}-${i}-${j}`);
+                        input.value = '0';
+                    }
+                }
+            });
+            
+            // Скрываем результаты
+            document.getElementById('result-section').style.display = 'none';
+        }
+        
+        // Функция для получения матрицы из введенных значений
+        function getMatrixFromInputs(matrixName) {
+            const size = parseInt(document.getElementById(`matrix-${matrixName.toLowerCase()}-size`).value);
+            const matrix = [];
+            
+            for (let i = 0; i < size; i++) {
+                const row = [];
+                for (let j = 0; j < size; j++) {
+                    const input = document.getElementById(`${matrixName.toLowerCase()}-${i}-${j}`);
+                    row.push(parseFloat(input.value));
+                }
+                matrix.push(row);
+            }
+            
+            return matrix;
+        }
+        
+        // Функция для получения произведения положительных элементов главной диагонали
+        function getPositiveDiagonalProduct(matrix) {
+            let product = 1;
+            let hasPositive = false;
+            
+            for (let i = 0; i < matrix.length; i++) {
+                if (matrix[i][i] > 0) {
+                    product *= matrix[i][i];
+                    hasPositive = true;
+                }
+            }
+            
+            // Если нет положительных элементов, возвращаем 0
+            return hasPositive ? product : 0;
+        }
+        
+        // Функция для вычисления результата
+        function calculateResult() {
+            // Получаем матрицы из введенных значений
+            const matrixA = getMatrixFromInputs('A');
+            const matrixB = getMatrixFromInputs('B');
+            const matrixC = getMatrixFromInputs('C');
+            
+            // Вычисляем произведения положительных элементов главных диагоналей
+            const productA = getPositiveDiagonalProduct(matrixA);
+            const productB = getPositiveDiagonalProduct(matrixB);
+            const productC = getPositiveDiagonalProduct(matrixC);
+            
+            // Вычисляем значение выражения PA + PB - PC
+            const result = productA + productB - productC;
+            
+            // Отображаем результаты
+            document.getElementById('product-a').textContent = `Произведение положительных элементов главной диагонали матрицы A: ${productA}`;
+            document.getElementById('product-b').textContent = `Произведение положительных элементов главной диагонали матрицы B: ${productB}`;
+            document.getElementById('product-c').textContent = `Произведение положительных элементов главной диагонали матрицы C: ${productC}`;
+            document.getElementById('final-result').textContent = `Результат выражения PA + PB - PC = ${result}`;
+            
+            // Показываем блок с результатами
+            document.getElementById('result-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
